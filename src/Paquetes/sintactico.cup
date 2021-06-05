@@ -1,0 +1,178 @@
+package Paquetes;
+import java_cup.runtime.*;
+
+
+/*Codigo para el parser*/
+
+parser code
+{:
+     public String resultado="";
+     public String fila="";
+     public String tabla="";
+     public String columna="";
+     public String error="";
+     public String total="";
+     public String lista="";
+     
+/* El objeto Symbo tiene como parametro Value = Lexema,   right =fila y left=columna */
+    public void syntax_error(Symbol s)
+    {
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;        
+        error= " ERROR SINTACTICO:" + " NO SE ESPERABA"  + " «"+lexema+"» " + "en la linea "+ fila + " en la columna " + columna;
+        System.out.println(error);
+        System.out.println("============================================");
+    }
+
+ :};    
+
+/*Actiones Gramaticales*/
+action code
+{:
+
+:};
+
+/*Declarativa*/
+/* Definir los terminales:  */
+terminal ParentesisAper,ParentesisCierre;
+terminal BORDE,InicioFila,InicioColumna,InicioDocumento,InicioEncabezado;
+terminal TituloEncabezado,FinEncabezado,InicioTabla,Numero,FinDocumento;
+terminal InicioCuerpoDoc,FinCuerpoDoc,FinTabla,Igual,Comillas,OperadorMultiplicacion,OperadorSuma,OperadorResta,NumeroDecimal;
+terminal InicioImagen,FinImagen,Correo,FinFila,Separador,PuntoComa,DosPunto,InicioLista;
+terminal FinLista,PRUEBA,NEGRITA,IMPRIMIR,Variable,ENLACE,Link,Identificador;
+
+
+
+/*===Definir los no terminales:*/
+non terminal E,CUERPO,ENCABEZADO,CONTENIDO,FILA,COLUMNA,OPERACION,LISTA,I,TABLA,LISTA_CON,IMA,A,CON_IMA,CONTENIDO_COL;
+
+precedence left OperadorSuma,OperadorResta;
+precedence left OperadorMultiplicacion;
+
+start with E;
+
+E::= InicioDocumento CUERPO:b FinDocumento {: String a = "<html>\n " + b  + "</html>\n ";
+                                              resultado += String.valueOf(a); :} 
+                                          ;
+CUERPO::= InicioEncabezado ENCABEZADO:b FinEncabezado InicioCuerpoDoc CONTENIDO FinCuerpoDoc {: String a= "<head>\n" + b + "</head>\n" +
+                                                                                                              "<body>\n" +tabla+"\n" + "</body>\n";
+                                                                                                                RESULT= a; 
+                                                                                                                :};
+
+ENCABEZADO::= TituloEncabezado Igual Comillas Identificador:c Comillas{:
+                                                                        String a="<title>\n" + c +"\n" + "</title>\n";
+                                                                        RESULT=a;
+                                                                       :};
+   
+CONTENIDO::= TABLA
+            | CONTENIDO TABLA 
+            | CONTENIDO LISTA
+            | CONTENIDO IMA
+            | CONTENIDO I
+            | CONTENIDO ENLACE Igual Comillas Link PuntoComa 
+            ;
+
+TABLA::= InicioTabla BORDE Igual Numero:b FILA  FinTabla {: String a= "<table border="+(String)b+">\n" +fila+ "</table>\n";  
+                                                           tabla+=a;
+                                                             :};
+         
+         
+FILA::=  InicioFila COLUMNA  FinFila {: String a= "<tr>\n" + columna + "</tr>\n"; 
+                                       fila+=a;
+                                       columna="";
+                             :}
+         | FILA InicioFila COLUMNA FinFila {: String a= "<tr>\n" + columna + "</tr>\n"; 
+                                       fila+=a;     
+                                        columna="";
+                                   :};
+          
+
+
+COLUMNA::= InicioColumna Igual Comillas Identificador:b Comillas InicioColumna Igual Comillas Identificador:c Comillas InicioColumna Igual Comillas Identificador:d Comillas
+           InicioColumna Igual Comillas Identificador:e Comillas InicioColumna Igual Comillas Identificador:f Comillas InicioColumna Igual Comillas Identificador:g Comillas
+           {: String a= "<th>" +b+ "</th>"+"<th>" +c+ "</th>"+"<th>" +d+ "</th>"+"<th>" +e+ "</th>"+"<th>" +f+ "</th>"+"<th>" +g+ "</th>";
+              columna+=a;
+            :}
+
+           | InicioColumna Igual Comillas Numero:n Comillas InicioColumna Igual Comillas Identificador:a Comillas InicioColumna Igual Comillas Identificador:b Comillas 
+            InicioColumna Igual Comillas OPERACION Comillas  InicioColumna Igual Comillas Correo:e Comillas InicioColumna Igual InicioImagen Comillas Identificador Comillas FinImagen   
+           {:
+            String g= "<th>" + n + "</th>" + "<th>" +a+ "</th>"+"<th>" +b+ "</th>"+"<th>" +total+ "</th>"+"<th>" + e+ "</th>" +"<td> <img src="+"\"C:/Users/Ronal/Documents/NetBeansProjects/Proyecto_Compiladores/umg.png\""+ "style="+"\"width:75px;height:75px;\""+"></td>\n "; 
+             columna+=g;           
+            :} 
+                  
+            |  InicioColumna Igual Comillas Identificador:a Comillas InicioColumna Igual Comillas Identificador:b Comillas InicioColumna 
+              Igual Comillas Identificador:c Comillas InicioColumna Igual Comillas Identificador:d Comillas InicioColumna Igual Comillas Identificador:e Comillas 
+              {:
+                String g= "<th>" +a+ "</th>"+"<th>" +b+ "</th>"+"<th>" +c+ "</th>"+"<th>" +d+ "</th>"+"<th>" +e+ "</th>";
+                columna+=g;
+              
+              :}
+
+
+           | InicioColumna Igual Comillas Numero:n Comillas InicioColumna Igual Comillas Identificador:a Comillas InicioColumna Igual Comillas Identificador:b Comillas 
+            InicioColumna Igual Comillas OPERACION Comillas  InicioColumna Igual Comillas Correo:c Comillas
+              {:
+
+              String g= "<th>" + n + "</th>" + "<th>" +a+ "</th>"+"<th>" +b+ "</th>"+"<th>" +total+ "</th>"+"<th>" + c+ "</th>"; 
+             columna+=g;  
+              
+            :}  
+
+
+                
+                
+            ;  
+
+OPERACION::= OPERACION:c OperadorSuma OPERACION:m {: int a=  Integer.parseInt((String) c);
+                                                int b=  Integer.parseInt((String) m);
+                                                 int resu= a+b;
+                                                 total= String.valueOf(resu);
+                                                 RESULT= total;
+                                                
+                                            
+                                            :}
+            | OPERACION:v OperadorResta OPERACION:o    {: int a=  Integer.parseInt((String) v);
+                                                int b=  Integer.parseInt((String) o);
+                                                 int resu= a-b;
+                                                 total= String.valueOf(resu);
+                                                 RESULT= total;
+                                            
+                                            :}      
+
+             | OPERACION:s OperadorMultiplicacion OPERACION:d {: int a=  Integer.parseInt((String) s);
+                                                int b=  Integer.parseInt((String) d);
+                                                 int resu= a*b;
+                                                 total= String.valueOf(resu);
+                                                 RESULT= total;
+                                            
+                                            :}      
+
+            | ParentesisAper:s Numero:b OperadorSuma:g Numero:f ParentesisCierre:t OperadorMultiplicacion:n NumeroDecimal:d {: 
+                                                                                                                       String a= ""+s+b+g+f+t+n+d;
+                                                                                                                       total=String.valueOf(a);                                                                                                                                                                                                                                    
+                                                                                                                RESULT=total;
+                                                                                                          :} 
+             | Numero:a {: RESULT=a.toString(); :}
+             | NumeroDecimal:a {: RESULT=a.toString(); :}
+             ;
+
+LISTA::= InicioLista LISTA_CON FinLista;
+
+LISTA_CON::=  Identificador Separador Identificador Separador Identificador Separador Identificador
+        | LISTA Identificador Identificador Separador Identificador Separador Identificador Separador Identificador
+        ;
+
+IMA::= InicioImagen Identificador Igual Comillas Identificador Comillas ENLACE Igual Comillas Link PuntoComa
+       Identificador DosPunto Numero Identificador DosPunto Numero FinImagen;
+
+
+I::=  PRUEBA
+             NEGRITA ParentesisAper Identificador ParentesisCierre
+             NEGRITA ParentesisAper Numero ParentesisCierre
+             NEGRITA ParentesisAper Identificador ParentesisCierre
+             Variable Igual Numero OperadorSuma Numero PuntoComa
+             IMPRIMIR ParentesisAper Variable ParentesisCierre
+            ;
+            
